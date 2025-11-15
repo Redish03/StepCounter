@@ -115,10 +115,6 @@ class StepCounterService : Service(), SensorEventListener {
         sendBroadcast(intent)
     }
 
-    private fun saveStepsToPrefs(steps: Int) {
-        walkPrefs.edit().putInt(StepCounterUtil.KEY_CURRENT_STEPS, steps).apply()
-    }
-
     companion object {
         private const val NOTIFICATION_CHANNEL_ID = "step_counter_channel"
     }
