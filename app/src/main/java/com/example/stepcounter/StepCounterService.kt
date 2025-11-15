@@ -109,6 +109,10 @@ class StepCounterService : Service(), SensorEventListener {
         }
     }
 
+    private fun saveStepsToPrefs(steps: Int) {
+        walkPrefs.edit().putInt(StepCounterUtil.KEY_CURRENT_STEPS, steps).apply()
+    }
+
     private fun sendSetUpdateBroadcast(steps: Int) {
         val intent = Intent(StepCounterUtil.ACTION_STEP_UPDATED)
         intent.putExtra(StepCounterUtil.KEY_CURRENT_STEPS, steps)
