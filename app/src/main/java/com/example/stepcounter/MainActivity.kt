@@ -82,9 +82,13 @@ class MainActivity : AppCompatActivity() {
     private fun setupStepUpdateReceiver() {
         stepUpdateReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                val steps = intent?.getIntExtra(StepCounterUtil.KEY_CURRENT_STEPS, 0)
-                binding.stepCountView.text = steps.toString()
-                Log.d("MainActivity", "방송 수신: $steps 걸음")
+                if (intent?.action == StepCounterUtil.ACTION_STEP_UPDATED) {
+                    val steps = intent.getIntExtra(StepCounterUtil.KEY_CURRENT_STEPS, 0)
+                    Log.d("MainActivity", "방송 수신 성공: $steps 걸음")
+                    binding.stepCountView.text = steps.toString()
+                } else {
+                    Log.w("MainActivity", "방송은 수신했으나 Action이 다름: ${intent?.action}")
+                }
             }
         }
     }

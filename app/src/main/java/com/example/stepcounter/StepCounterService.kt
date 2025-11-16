@@ -118,6 +118,8 @@ class StepCounterService : Service(), SensorEventListener {
     private fun sendSetUpdateBroadcast(steps: Int) {
         val intent = Intent(StepCounterUtil.ACTION_STEP_UPDATED)
         intent.putExtra(StepCounterUtil.KEY_CURRENT_STEPS, steps)
+
+        intent.setPackage(packageName)
         sendBroadcast(intent)
     }
 
