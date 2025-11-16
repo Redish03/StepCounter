@@ -7,13 +7,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.stepcounter.databinding.ActivityMainBinding
@@ -106,42 +102,5 @@ class MainActivity : AppCompatActivity() {
         val currentSteps = stepCounterPrefs.getInt(StepCounterUtil.KEY_CURRENT_STEPS, 0)
 
         binding.stepCountView.text = currentSteps.toString()
-    }
-
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode == 0) {
-            var allGranted = true
-
-            for (result in grantResults) {
-                if (result != PackageManager.PERMISSION_DENIED) {
-                    allGranted = false
-                    break
-                }
-            }
-
-            if (allGranted) startStepCounterService()
-            else {
-                Toast.makeText(this, "권한이 거부되어 만보기를 실행할 수 없습니다", Toast.LENGTH_SHORT).show()
-
-                AlertDialog.Builder(this)
-                    .setTitle("권한 필요")
-                    .setMessage("만보기 기능을 사용하려면 신체 기능 및 알림 권한이 필요합니다. 설정에서 허용해주세요.")
-                    .setPositiveButton("설정으로 이동") { _, _ ->
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                        val uri = Uri.fromParts("package", packageName, null)
-                        intent.data = uri
-                        startActivity(intent)
-                    }
-                    .setNegativeButton("취소", null)
-                    .show()
-            }
-        }
     }
 }
