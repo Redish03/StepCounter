@@ -69,6 +69,22 @@ class StepCounterService : Service(), SensorEventListener {
         // TODO("Not yet implemented")
     }
 
+    override fun onSensorChanged(event: SensorEvent?) {
+        event?.let {
+            if (event.sensor.type == Sensor.TYPE_STEP_DETECTOR) {
+                if (event.values[0] == 1.0f) {
+                    currentSteps++
+                    Log.d("StepCounterService", "걸음 수 : $currentSteps")
+
+                    saveStepsToPrefs(currentSteps)
+
+                    Log.d("StepCounterService", ">>> MainActivity로 방송(Broadcast) 송신 시도...")
+                    sendSetUpdateBroadcast(currentSteps)
+                }
+            }
+        }
+    }
+
     // 포그라운드 서비스 알림 설정
     private fun startForegroundService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -93,20 +109,6 @@ class StepCounterService : Service(), SensorEventListener {
 
         // ForeGround 서비스 시작 (ID와 알림 전달)
         startForeground(1, notification)
-    }
-
-    override fun onSensorChanged(event: SensorEvent?) {
-        event?.let {
-            if (event.sensor.type == Sensor.TYPE_STEP_DETECTOR) {
-                if (event.values[0] == 1.0f) {
-                    currentSteps++
-                    Log.d("StepCounterService", "걸음 수 : $currentSteps")
-
-                    saveStepsToPrefs(currentSteps)
-                    sendSetUpdateBroadcast(currentSteps)
-                }
-            }
-        }
     }
 
     private fun saveStepsToPrefs(steps: Int) {
