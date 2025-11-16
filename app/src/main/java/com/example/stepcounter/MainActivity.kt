@@ -54,20 +54,14 @@ class MainActivity : AppCompatActivity() {
         val permissionsToRequest = mutableListOf<String>()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACTIVITY_RECOGNITION
-                ) == PackageManager.PERMISSION_DENIED
+            if (checkPermissionDenied(Manifest.permission.ACTIVITY_RECOGNITION)
             ) {
                 permissionsToRequest.add(Manifest.permission.ACTIVITY_RECOGNITION)
             }
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_DENIED
+            if (checkPermissionDenied(Manifest.permission.POST_NOTIFICATIONS)
             ) {
                 permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
             }
@@ -77,6 +71,11 @@ class MainActivity : AppCompatActivity() {
             requestPermissions(permissionsToRequest.toTypedArray(), 0)
         }
     }
+
+    private fun checkPermissionDenied(permission: String) = ContextCompat.checkSelfPermission(
+        this,
+        permission
+    ) == PackageManager.PERMISSION_DENIED
 
 
     private fun setupStepUpdateReceiver() {
