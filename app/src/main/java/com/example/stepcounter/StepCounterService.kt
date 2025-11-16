@@ -37,20 +37,11 @@ class StepCounterService : Service(), SensorEventListener {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         stepCountSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
 
-        if (stepCountSensor == null) {
-            Toast.makeText(this, "만보기 센서가 없습니다", Toast.LENGTH_SHORT)
-        } else {
-            sensorManager.registerListener(
-                this,
-                stepCountSensor,
-                SensorManager.SENSOR_DELAY_FASTEST
-            )
-        }
+        checkSensorAvailable()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d("StepCounterService", "서비스 종료")
         sensorManager.unregisterListener(this)
     }
 
@@ -85,6 +76,18 @@ class StepCounterService : Service(), SensorEventListener {
         }
     }
 
+    private fun checkSensorAvailable() {
+        if (stepCountSensor == null) {
+            Toast.makeText(this, "만보기 센서가 없습니다", Toast.LENGTH_SHORT)
+        } else {
+            sensorManager.registerListener(
+                this,
+                stepCountSensor,
+                SensorManager.SENSOR_DELAY_FASTEST
+            )
+        }
+    }
+
     // 포그라운드 서비스 알림 설정
     private fun startForegroundService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -100,12 +103,7 @@ class StepCounterService : Service(), SensorEventListener {
         }
 
         // 알림 생성
-        val notification: Notification =
-            NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-                .setContentTitle("만보기앱")
-                .setContentText("$currentSteps 걸음, 만보기가 실행중입니다.")
-                .setSmallIcon(R.mipmap.ic_launcher) // TODO: 앱 아이콘으로 변경
-                .build()
+        val notification: Notification = createNewNotification(context = this)
 
         // ForeGround 서비스 시작 (ID와 알림 전달)
         startForeground(1, notification)
@@ -122,6 +120,13 @@ class StepCounterService : Service(), SensorEventListener {
         intent.setPackage(packageName)
         sendBroadcast(intent)
     }
+
+    private fun createNewNotification(context: Context): Notification =
+        NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+            .setContentTitle("만보기앱")
+            .setContentText("$currentSteps 걸음, 만보기가 실행중입니다.")
+            .setSmallIcon(R.mipmap.ic_launcher) // TODO: 앱 아이콘으로 변경
+            .build()
 
     companion object {
         private const val NOTIFICATION_CHANNEL_ID = "step_counter_channel"
