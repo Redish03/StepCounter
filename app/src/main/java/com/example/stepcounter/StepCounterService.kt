@@ -3,6 +3,7 @@ package com.example.stepcounter
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -24,12 +25,14 @@ class StepCounterService : Service(), SensorEventListener {
     private var stepCountSensor: Sensor? = null
     private var currentSteps = 0
     private lateinit var walkPrefs: SharedPreferences
+    private lateinit var notificationManager: NotificationManager
 
     override fun onCreate() {
         super.onCreate()
         Log.d("StepCounterService", "서비스 생성")
 
         walkPrefs = getSharedPreferences(StepCounterUtil.PREFERENCE_FILE_NAME, Context.MODE_PRIVATE)
+        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         initCurrentSteps()
 
@@ -75,6 +78,9 @@ class StepCounterService : Service(), SensorEventListener {
 
                     Log.d("StepCounterService", ">>> MainActivity로 방송(Broadcast) 송신 시도...")
                     sendSetUpdateBroadcast(currentSteps)
+
+                    val updatedNotification = createNotification()
+                    notificationManager.notify(NOTIFICATION_ID, updatedNotification)
                 }
             }
         }
@@ -102,15 +108,14 @@ class StepCounterService : Service(), SensorEventListener {
                 NotificationManager.IMPORTANCE_LOW // 중요도를 낮춰 소리랑 진동을 없앰
             )
 
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.createNotificationChannel(channel)
+            notificationManager.createNotificationChannel(channel)
         }
 
         // 알림 생성
-        val notification: Notification = createNewNotification(context = this)
+        val notification = createNotification()
 
         // ForeGround 서비스 시작 (ID와 알림 전달)
-        startForeground(1, notification)
+        startForeground(NOTIFICATION_ID, notification)
     }
 
     private fun saveStepsToPrefs(steps: Int) {
@@ -125,14 +130,24 @@ class StepCounterService : Service(), SensorEventListener {
         sendBroadcast(intent)
     }
 
-    private fun createNewNotification(context: Context): Notification =
-        NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+    private fun createNotification(): Notification {
+//        val pendingIntent = Intent(this, MainActivity::class.java).let {
+//            PendingIntent.getActivity(this, 0, PendingIntent.FLAG_IMMUTABLE)
+//        }
+
+        val contextText = "현재 걸음수 : $currentSteps"
+
+        return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setContentTitle("만보기앱")
-            .setContentText("$currentSteps 걸음, 만보기가 실행중입니다.")
+            .setContentText(contextText)
+//            .setContentIntent(pendingIntent)
             .setSmallIcon(R.mipmap.ic_launcher) // TODO: 앱 아이콘으로 변경
+            .setOnlyAlertOnce(true)
             .build()
+    }
 
     companion object {
+        private const val NOTIFICATION_ID = 1
         private const val NOTIFICATION_CHANNEL_ID = "step_counter_channel"
     }
 }
