@@ -31,13 +31,17 @@ class StepCounterService : Service(), SensorEventListener {
 
         walkPrefs = getSharedPreferences(StepCounterUtil.PREFERENCE_FILE_NAME, Context.MODE_PRIVATE)
 
-        currentSteps = walkPrefs.getInt(StepCounterUtil.KEY_CURRENT_STEPS, 0)
-        Log.d("StepCounterService", "초기 걸음수 불러옴: $currentSteps")
+        initCurrentSteps()
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         stepCountSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR)
 
         checkSensorAvailable()
+    }
+
+    private fun initCurrentSteps() {
+        currentSteps = walkPrefs.getInt(StepCounterUtil.KEY_CURRENT_STEPS, 0)
+        Log.d("StepCounterService", "초기 걸음수 불러옴: $currentSteps")
     }
 
     override fun onDestroy() {
