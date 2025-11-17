@@ -115,7 +115,7 @@ class MainActivity : AppCompatActivity() {
     private fun checkBatteryOptimizations() {
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
 
-        if(!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
             Log.d("MainActivity", "배터리 최적화 예외가 필요합니다.")
 
             AlertDialog.Builder(this)
