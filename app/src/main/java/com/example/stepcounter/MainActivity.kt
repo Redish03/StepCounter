@@ -7,9 +7,13 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.util.Log
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.stepcounter.databinding.ActivityMainBinding
@@ -29,6 +33,7 @@ class MainActivity : AppCompatActivity() {
 
         checkActivityPermission()
         setupStepUpdateReceiver()
+        checkBatteryOptimizations()
         startStepCounterService()
     }
 
@@ -105,5 +110,26 @@ class MainActivity : AppCompatActivity() {
         val currentSteps = stepCounterPrefs.getInt(StepCounterUtil.KEY_CURRENT_STEPS, 0)
 
         binding.stepCountView.text = currentSteps.toString()
+    }
+
+    private fun checkBatteryOptimizations() {
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+
+        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+            Log.d("MainActivity", "배터리 최적화 예외가 필요합니다.")
+
+            AlertDialog.Builder(this)
+                .setTitle("배터리 최적화 필요")
+                .setMessage("만보기가 하루 종일 정확하게 작동하려면, 배터리 사용량 최적화에서 제외 해야합니다.\n\n'예'를 누르면 설정 화면으로 이동합니다.")
+                .setPositiveButton("설정으로 이동") { _, _ ->
+                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                    intent.data = Uri.parse("package:$packageName")
+                    startActivity(intent)
+                }
+                .setNegativeButton("취소", null)
+                .show()
+        } else {
+            Log.d("MainActivity", "배터리 최적화 예외가 이미 설정됨.")
+        }
     }
 }
