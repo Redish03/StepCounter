@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -22,6 +23,28 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var stepCounterPrefs: SharedPreferences
     private lateinit var stepUpdateReceiver: BroadcastReceiver
+    private val permissionsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val activityGranted = permissions[Manifest.permission.ACTIVITY_RECOGNITION] ?: false
+            val notificationGranted =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    permissions[Manifest.permission.POST_NOTIFICATIONS] ?: false
+                } else {
+                    true
+                }
+
+            if (activityGranted && notificationGranted) {
+                startStepCounterService()
+                checkBatteryOptimizations()
+            } else {
+                showPermissionGuidanceDialog()
+            }
+        }
+
+    private val batteryOptimizationLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            Log.d("MainActivity", "배터리 최적화 설정 화면에서 복귀함")
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,10 +54,8 @@ class MainActivity : AppCompatActivity() {
         stepCounterPrefs =
             getSharedPreferences(StepCounterUtil.PREFERENCE_FILE_NAME, Context.MODE_PRIVATE)
 
-        checkActivityPermission()
+        checkAndRequestPermissions()
         setupStepUpdateReceiver()
-        checkBatteryOptimizations()
-        startStepCounterService()
     }
 
     override fun onResume() {
@@ -55,7 +76,7 @@ class MainActivity : AppCompatActivity() {
         unregisterReceiver(stepUpdateReceiver)
     }
 
-    fun checkActivityPermission() {
+    fun checkAndRequestPermissions() {
         val permissionsToRequest = mutableListOf<String>()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -73,7 +94,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (permissionsToRequest.isNotEmpty()) {
-            requestPermissions(permissionsToRequest.toTypedArray(), 0)
+            permissionsLauncher.launch(permissionsToRequest.toTypedArray())
+        } else {
+            startStepCounterService()
+            checkBatteryOptimizations()
         }
     }
 
@@ -98,12 +122,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startStepCounterService() {
-        val serviceIntent = Intent(this, StepCounterService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent)
-        } else {
-            startService(serviceIntent)
-        }
+        Log.d("MainActivity", "서비스 시작 시도")
+        StepCounterService.startService(this)
     }
 
     private fun loadStepsFromPrefs() {
@@ -124,12 +144,23 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton("설정으로 이동") { _, _ ->
                     val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
                     intent.data = Uri.parse("package:$packageName")
-                    startActivity(intent)
+                    batteryOptimizationLauncher.launch(intent)
                 }
                 .setNegativeButton("취소", null)
                 .show()
-        } else {
-            Log.d("MainActivity", "배터리 최적화 예외가 이미 설정됨.")
         }
+    }
+
+    private fun showPermissionGuidanceDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("권한 필요")
+            .setMessage("만보기 기능을 사용하려면 '신체 활동' 및 '알림' 권한이 모두 필요합니다. 설정에서 권한을 허용해주세요.")
+            .setPositiveButton("설정으로 이동") { _, _ ->
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = Uri.fromParts("package", packageName, null)
+                startActivity(intent)
+            }
+            .setNegativeButton("취소", null)
+            .show()
     }
 }
