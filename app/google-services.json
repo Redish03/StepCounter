@@ -12,7 +12,20 @@
           "package_name": "com.example.stepcounter"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "247835682968-7vrl367mink9tea2lq04dtstahdhr7fc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.stepcounter",
+            "certificate_hash": "c28e5170febb7aa4245ccb34163a66602de0879d"
+          }
+        },
+        {
+          "client_id": "247835682968-sjrjm3i2ja99lqvrfejr1m8csmo6j8jq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAXss7XPPmvlam_0yGawmU83hqy6suldoQ"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "247835682968-sjrjm3i2ja99lqvrfejr1m8csmo6j8jq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

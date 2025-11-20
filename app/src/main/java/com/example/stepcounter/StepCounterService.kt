@@ -103,6 +103,19 @@ class StepCounterService : LifecycleService(), SensorEventListener {
         if (stepCountSensor == null) {
             Toast.makeText(this, "만보기 센서가 없습니다", Toast.LENGTH_SHORT)
         } else {
+            try {
+                sensorManager.registerListener(
+                    this,
+                    stepCountSensor,
+                    SensorManager.SENSOR_DELAY_FASTEST
+                )
+            } catch (e: SecurityException) {
+                Log.e("StepCounterService", "권한이 없어 센서를 등록할 수 없습니다: ${e.message}")
+                Toast.makeText(this, "권한이 필요합니다", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                Log.e("StepCounterService", "센서 등록 중 오류 발생: ${e.message}")
+            }
+
             sensorManager.registerListener(
                 this,
                 stepCountSensor,
