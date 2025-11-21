@@ -15,24 +15,23 @@ class RankingAdapter: RecyclerView.Adapter<RankingAdapter.RankingViewHolder>() {
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(
-        parent: ViewGroup,
-        viewType: Int
-    ): RankingViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_2, parent, false)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RankingViewHolder {
+        // 기존: simple_list_item_2 -> 변경: item_ranking
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_ranking, parent, false)
         return RankingViewHolder(view)
     }
 
-    override fun onBindViewHolder(
-        holder: RankingViewHolder,
-        position: Int
-    ) {
+    override fun onBindViewHolder(holder: RankingViewHolder, position: Int) {
         val member = members[position]
-        val text1 = holder.itemView.findViewById<TextView>(android.R.id.text1)
-        val text2 = holder.itemView.findViewById<TextView>(android.R.id.text2)
 
-        text1.text = "${position + 1}등, ${member.name}"
-        text2.text = "${member.steps}걸음"
+        // ID 변경에 따른 매핑
+        val tvRank = holder.itemView.findViewById<TextView>(R.id.tv_rank)
+        val tvName = holder.itemView.findViewById<TextView>(R.id.tv_name)
+        val tvSteps = holder.itemView.findViewById<TextView>(R.id.tv_steps)
+
+        tvRank.text = "${position + 1}"
+        tvName.text = member.name
+        tvSteps.text = "${member.steps}"
     }
 
     override fun getItemCount(): Int {
