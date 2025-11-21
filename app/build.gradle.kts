@@ -55,6 +55,7 @@ dependencies {
     implementation("androidx.credentials:credentials:1.6.0-beta03")
     implementation("androidx.credentials:credentials-play-services-auth:1.6.0-beta03")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("com.google.firebase:firebase-firestore:26.0.2")
     // Coroutine
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("androidx.lifecycle:lifecycle-service:2.9.4")
