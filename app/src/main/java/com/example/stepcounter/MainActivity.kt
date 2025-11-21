@@ -37,6 +37,10 @@ class MainActivity : AppCompatActivity() {
         stepCounterPrefs =
             getSharedPreferences(StepCounterUtil.PREFERENCE_FILE_NAME, Context.MODE_PRIVATE)
 
+        binding.myTeamButton.setOnClickListener {
+            moveToGroupActivity()
+        }
+
         checkBatteryOptimizations()
         startStepCounterService()
         setupStepUpdateReceiver()
@@ -113,6 +117,10 @@ class MainActivity : AppCompatActivity() {
                 .setNegativeButton("취소", null)
                 .show()
         }
+    }
+
+    private fun moveToGroupActivity() {
+        startActivity(Intent(this, GroupActivity::class.java))
     }
 
     private fun showPermissionGuidanceDialog() {
