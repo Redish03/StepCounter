@@ -1,5 +1,6 @@
 package com.example.stepcounter
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,6 +8,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -16,6 +18,7 @@ import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
@@ -53,6 +56,12 @@ class StepCounterService : LifecycleService(), SensorEventListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         Log.d("StepCounterService", "서비스 시작")
+
+        if (!hasPermission()) {
+            Log.e("StepCounterService", "권한이 없어 서비스를 시작할 수 없습니다")
+            stopSelf()
+            return START_NOT_STICKY
+        }
 
         startForegroundServiceNotification()
         return START_STICKY
@@ -115,12 +124,6 @@ class StepCounterService : LifecycleService(), SensorEventListener {
             } catch (e: Exception) {
                 Log.e("StepCounterService", "센서 등록 중 오류 발생: ${e.message}")
             }
-
-            sensorManager.registerListener(
-                this,
-                stepCountSensor,
-                SensorManager.SENSOR_DELAY_FASTEST
-            )
         }
     }
 
@@ -162,6 +165,15 @@ class StepCounterService : LifecycleService(), SensorEventListener {
             .build()
     }
 
+    private fun hasPermission(): Boolean {
+        return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContextCompat.checkSelfPermission(
+                this, Manifest.permission.ACTIVITY_RECOGNITION
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
     private fun updateNotification(steps: Int) {
         val notification = createNotification(steps)
         notificationManager.notify(NOTIFICATION_ID, notification)

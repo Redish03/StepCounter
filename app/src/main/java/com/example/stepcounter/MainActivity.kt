@@ -23,23 +23,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var stepCounterPrefs: SharedPreferences
     private lateinit var stepUpdateReceiver: BroadcastReceiver
-    private val permissionsLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            val activityGranted = permissions[Manifest.permission.ACTIVITY_RECOGNITION] ?: false
-            val notificationGranted =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    permissions[Manifest.permission.POST_NOTIFICATIONS] ?: false
-                } else {
-                    true
-                }
-
-            if (activityGranted && notificationGranted) {
-                startStepCounterService()
-                checkBatteryOptimizations()
-            } else {
-                showPermissionGuidanceDialog()
-            }
-        }
 
     private val batteryOptimizationLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -54,7 +37,8 @@ class MainActivity : AppCompatActivity() {
         stepCounterPrefs =
             getSharedPreferences(StepCounterUtil.PREFERENCE_FILE_NAME, Context.MODE_PRIVATE)
 
-        checkAndRequestPermissions()
+        checkBatteryOptimizations()
+        startStepCounterService()
         setupStepUpdateReceiver()
     }
 
@@ -76,37 +60,6 @@ class MainActivity : AppCompatActivity() {
         unregisterReceiver(stepUpdateReceiver)
     }
 
-    fun checkAndRequestPermissions() {
-        val permissionsToRequest = mutableListOf<String>()
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            if (checkPermissionDenied(Manifest.permission.ACTIVITY_RECOGNITION)
-            ) {
-                permissionsToRequest.add(Manifest.permission.ACTIVITY_RECOGNITION)
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (checkPermissionDenied(Manifest.permission.POST_NOTIFICATIONS)
-            ) {
-                permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
-
-        if (permissionsToRequest.isNotEmpty()) {
-            permissionsLauncher.launch(permissionsToRequest.toTypedArray())
-        } else {
-            startStepCounterService()
-            checkBatteryOptimizations()
-        }
-    }
-
-    private fun checkPermissionDenied(permission: String) = ContextCompat.checkSelfPermission(
-        this,
-        permission
-    ) == PackageManager.PERMISSION_DENIED
-
-
     private fun setupStepUpdateReceiver() {
         stepUpdateReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -122,9 +75,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startStepCounterService() {
-        Log.d("MainActivity", "서비스 시작 시도")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+            && checkPermissionDenied(Manifest.permission.ACTIVITY_RECOGNITION)
+        ) {
+            Log.e("MainActivity", "권한 없음, 서비스 시작 차단")
+            return
+        }
+
         StepCounterService.startService(this)
     }
+
+    private fun checkPermissionDenied(permission: String) = ContextCompat.checkSelfPermission(
+        this,
+        permission
+    ) == PackageManager.PERMISSION_DENIED
 
     private fun loadStepsFromPrefs() {
         val currentSteps = stepCounterPrefs.getInt(StepCounterUtil.KEY_CURRENT_STEPS, 0)

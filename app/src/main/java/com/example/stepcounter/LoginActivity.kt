@@ -1,11 +1,19 @@
 package com.example.stepcounter
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -23,6 +31,22 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var auth: FirebaseAuth
 
+    private val permissionsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val activityGranted = permissions[Manifest.permission.ACTIVITY_RECOGNITION] ?: false
+            val notificationGranted =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    permissions[Manifest.permission.POST_NOTIFICATIONS] ?: false
+                } else {
+                    true
+                }
+
+            if (activityGranted && notificationGranted) {
+            } else {
+                showPermissionGuidanceDialog()
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
@@ -30,11 +54,37 @@ class LoginActivity : AppCompatActivity() {
         Log.d("LoginActivity", "login activity create")
 
         auth = FirebaseAuth.getInstance()
+        checkAndRequestPermissions()
 
         binding.btnGoogleSignIn.setOnClickListener {
             signInWithGoogle()
         }
     }
+
+    fun checkAndRequestPermissions() {
+        val permissionsToRequest = mutableListOf<String>()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+            checkPermissionDenied(Manifest.permission.ACTIVITY_RECOGNITION)
+        ) {
+            permissionsToRequest.add(Manifest.permission.ACTIVITY_RECOGNITION)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkPermissionDenied(Manifest.permission.ACTIVITY_RECOGNITION)
+        ) {
+            permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        if (permissionsToRequest.isNotEmpty()) {
+            permissionsLauncher.launch(permissionsToRequest.toTypedArray())
+        }
+    }
+
+    private fun checkPermissionDenied(permission: String) = ContextCompat.checkSelfPermission(
+        this,
+        permission
+    ) == PackageManager.PERMISSION_DENIED
 
     private fun signInWithGoogle() {
         val credentialManager = CredentialManager.create(this)
@@ -97,6 +147,19 @@ class LoginActivity : AppCompatActivity() {
                         .show()
                 }
             }
+    }
+
+    private fun showPermissionGuidanceDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("권한 필요")
+            .setMessage("만보기 기능을 사용하려면 '신체 활동' 및 '알림' 권한이 모두 필요합니다. 설정에서 권한을 허용해주세요.")
+            .setPositiveButton("설정으로 이동") { _, _ ->
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.data = Uri.fromParts("package", packageName, null)
+                startActivity(intent)
+            }
+            .setNegativeButton("취소", null)
+            .show()
     }
 
     companion object {
