@@ -47,11 +47,12 @@
         app:layout_constraintTop_toTopOf="@+id/step_count_text" />
 
     <Button
-        android:id="@+id/resetButton"
+        android:id="@+id/my_team_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="50dp"
-        android:text="reset"
+        android:layout_marginBottom="100dp"
+        android:text="나의 팀"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/stepCountView" />
+        app:layout_constraintEnd_toEndOf="@+id/stepCountView"
+        app:layout_constraintStart_toStartOf="@+id/step_count_text" />
 </androidx.constraintlayout.widget.ConstraintLayout>
