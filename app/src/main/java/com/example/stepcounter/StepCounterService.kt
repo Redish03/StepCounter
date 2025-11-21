@@ -21,6 +21,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import com.example.stepcounter.repository.GroupRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -86,6 +87,8 @@ class StepCounterService : LifecycleService(), SensorEventListener {
                     Log.d("StepCounterService", "변경 감지: $lastSavedSteps -> $currentSteps")
 
                     saveStepsToPrefs(currentSteps)
+
+                    GroupRepository.updateMySteps(currentSteps)
 
                     launch(Dispatchers.Main) {
                         sendStepUpdateBroadcast(currentSteps)
