@@ -37,7 +37,7 @@ object GroupRepository {
             }
     }
 
-    fun createGroup(onSuccess: (String) -> Unit, onFailure: (String) -> Unit) {
+    fun createGroup(groupName: String, onSuccess: (String) -> Unit, onFailure: (String) -> Unit) {
         val uid = auth.currentUser?.uid ?: return
 
         // 중복되지 않는 코드를 먼저 찾습니다.
@@ -50,6 +50,7 @@ object GroupRepository {
             val groupData = GroupInfo(
                 groupId = groupId,
                 enterCode = uniqueCode, // 검증된 유니크 코드 사용
+                groupName = groupName,
                 leaderUid = uid,
                 members = listOf(uid)
             )
@@ -58,10 +59,7 @@ object GroupRepository {
                 // 1. 그룹 생성 (이건 그대로)
                 transaction.set(newGroupRef, groupData)
 
-                // 2. 내 정보에 groupId 설정 (▼▼▼ 여기가 문제였습니다 ▼▼▼)
-                // 수정 전: transaction.update(db.collection("users").document(uid), "groupId", groupId)
-
-                // 수정 후: 문서가 없으면 만들고, 있으면 groupId만 추가하도록 변경
+                // 2. 내 정보에 groupId 설정
                 val userRef = db.collection("users").document(uid)
                 val userData = mapOf("groupId" to groupId)
 

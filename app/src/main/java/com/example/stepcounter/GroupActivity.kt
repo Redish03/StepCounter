@@ -32,7 +32,14 @@ class GroupActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         binding.btnCreateGroup.setOnClickListener {
-            GroupRepository.createGroup(
+            val groupName = binding.etGroupName.text.toString()
+
+            if(groupName.isBlank()) {
+                Toast.makeText(this, "그룹 이름을 입력해주세요", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            GroupRepository.createGroup(groupName,
                 onSuccess = { code ->
                     Toast.makeText(this, "방 생성 코드:  $code", Toast.LENGTH_LONG).show()
                 },
@@ -77,7 +84,8 @@ class GroupActivity : AppCompatActivity() {
                 binding.layoutNoGroup.isVisible = false
                 binding.layoutInGroup.isVisible = true
 
-                binding.tvGroupCode.text = "입장 코드: ${groupInfo.enterCode}"
+                binding.tvGroupName.text = groupInfo.groupName
+                binding.tvGroupCode.text = "초대 코드: ${groupInfo.enterCode}"
                 adapter.submitMember(members) // 랭킹 업데이트
             },
             onNoGroup = {
