@@ -43,15 +43,30 @@ class StepCounterService : LifecycleService(), SensorEventListener {
         walkPrefs = getSharedPreferences(StepCounterUtil.PREFERENCE_FILE_NAME, Context.MODE_PRIVATE)
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        initCurrentSteps()
+        checkDateAndReset()
+
         setupSensor()
         launchUpdateLoop()
     }
 
-    private fun initCurrentSteps() {
-        currentSteps = walkPrefs.getInt(StepCounterUtil.KEY_CURRENT_STEPS, 0)
-        Log.d("StepCounterService", "초기 걸음수 불러옴: $currentSteps")
-        lastSavedSteps = currentSteps
+    private fun checkDateAndReset() {
+        val lastDate = walkPrefs.getString(StepCounterUtil.KEY_LAST_UPDATE, "") ?: ""
+        val todayDate = StepCounterUtil.getTodayDate()
+
+        if (lastDate != todayDate) {
+            // 날짜가 다르면(하루가 지났으면) 리셋!
+            Log.d("StepCounterService", "날짜 변경 감지! ($lastDate -> $todayDate). 걸음수 0으로 리셋")
+            currentSteps = 0
+            lastSavedSteps = 0
+
+            // 리셋된 정보 저장 (날짜 갱신)
+            saveStepsToPrefs(0)
+        } else {
+            // 날짜가 같으면 기존 걸음수 불러오기
+            currentSteps = walkPrefs.getInt(StepCounterUtil.KEY_CURRENT_STEPS, 0)
+            lastSavedSteps = currentSteps
+            Log.d("StepCounterService", "오늘 걸음수 유지: $currentSteps")
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -83,9 +98,17 @@ class StepCounterService : LifecycleService(), SensorEventListener {
             while (true) {
                 delay(2000)
 
+                val lastDate = walkPrefs.getString(StepCounterUtil.KEY_LAST_UPDATE, "") ?: ""
+                val todayDate = StepCounterUtil.getTodayDate()
+
+                if (lastDate != todayDate) {
+                    Log.d("StepCounterService", "자정이 지나 리셋 실행")
+                    currentSteps = 0
+                    lastSavedSteps - 1 // 강제로 저장 로직이 돌게 하기 위해서 설정
+                }
+
                 if (currentSteps != lastSavedSteps) {
                     Log.d("StepCounterService", "변경 감지: $lastSavedSteps -> $currentSteps")
-
                     saveStepsToPrefs(currentSteps)
 
                     GroupRepository.updateMySteps(currentSteps)
@@ -149,7 +172,11 @@ class StepCounterService : LifecycleService(), SensorEventListener {
     }
 
     private fun saveStepsToPrefs(steps: Int) {
-        walkPrefs.edit().putInt(StepCounterUtil.KEY_CURRENT_STEPS, steps).commit()
+        val todayDate = StepCounterUtil.getTodayDate()
+        walkPrefs.edit()
+            .putInt(StepCounterUtil.KEY_CURRENT_STEPS, steps)
+            .putString(StepCounterUtil.KEY_LAST_UPDATE, todayDate)
+            .commit()
     }
 
     private fun createNotification(steps: Int): Notification {
@@ -169,7 +196,7 @@ class StepCounterService : LifecycleService(), SensorEventListener {
     }
 
     private fun hasPermission(): Boolean {
-        return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ContextCompat.checkSelfPermission(
                 this, Manifest.permission.ACTIVITY_RECOGNITION
             ) == PackageManager.PERMISSION_GRANTED
@@ -177,6 +204,7 @@ class StepCounterService : LifecycleService(), SensorEventListener {
             true
         }
     }
+
     private fun updateNotification(steps: Int) {
         val notification = createNotification(steps)
         notificationManager.notify(NOTIFICATION_ID, notification)
@@ -194,6 +222,13 @@ class StepCounterService : LifecycleService(), SensorEventListener {
 
     override fun onAccuracyChanged(p0: Sensor?, p1: Int) {
         // TODO("Not yet implemented")
+    }
+
+    private fun resetSteps() {
+        currentSteps = 0
+        lastSavedSteps = 0
+
+        saveStepsToPrefs(currentSteps)
     }
 
     companion object {
