@@ -115,12 +115,6 @@ class StepCounterService : LifecycleService(), SensorEventListener {
             } catch (e: Exception) {
                 Log.e("StepCounterService", "센서 등록 중 오류 발생: ${e.message}")
             }
-
-            sensorManager.registerListener(
-                this,
-                stepCountSensor,
-                SensorManager.SENSOR_DELAY_FASTEST
-            )
         }
     }
 
