@@ -187,10 +187,10 @@ class StepCounterService : LifecycleService(), SensorEventListener {
         val contextText = "현재 걸음수 : $steps"
 
         return NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-            .setContentTitle("만보기앱")
+            .setContentTitle("Team Walk")
             .setContentText(contextText)
             .setContentIntent(pendingIntent)
-            .setSmallIcon(R.mipmap.ic_launcher) // TODO: 앱 아이콘으로 변경
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setOnlyAlertOnce(true)
             .build()
     }

@@ -69,7 +69,7 @@
             android:layout_marginHorizontal="24dp"
             android:layout_marginTop="60dp"
             android:layout_marginBottom="40dp"
-            android:text="나의 팀 랭킹 보기"
+            android:text="나의 팀에서 랭킹 보기"
             android:textSize="18sp"
             android:textStyle="bold"
             android:backgroundTint="@color/primary_blue"
