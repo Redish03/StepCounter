@@ -1,6 +1,7 @@
 package com.teamwalk.stepcounter.repository
 
 import android.util.Log
+import androidx.annotation.Keep
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.firestore.FirebaseFirestore
@@ -15,6 +16,7 @@ object GroupRepository {
         data class Failure(val message: String): DeleteResult
     }
 
+    @Keep
     data class UserStepInfo(
         val uid: String = "",
         val name: String = "",
