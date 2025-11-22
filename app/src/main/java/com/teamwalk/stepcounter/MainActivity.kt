@@ -1,4 +1,4 @@
-package com.example.stepcounter
+package com.teamwalk.stepcounter
 
 import android.Manifest
 import android.content.BroadcastReceiver
@@ -20,8 +20,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.stepcounter.databinding.ActivityMainBinding
-import com.example.stepcounter.repository.GroupRepository
+import com.teamwalk.stepcounter.databinding.ActivityMainBinding
+import com.teamwalk.stepcounter.repository.GroupRepository
 import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {

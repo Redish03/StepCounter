@@ -1,4 +1,4 @@
-package com.example.stepcounter.repository
+package com.teamwalk.stepcounter.repository
 
 data class GroupInfo(
     val groupId: String = "",

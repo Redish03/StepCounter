@@ -1,4 +1,4 @@
-package com.example.stepcounter.repository
+package com.teamwalk.stepcounter.repository
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth

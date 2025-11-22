@@ -1,4 +1,4 @@
-package com.example.stepcounter
+package com.teamwalk.stepcounter
 
 import java.text.SimpleDateFormat
 import java.util.Date

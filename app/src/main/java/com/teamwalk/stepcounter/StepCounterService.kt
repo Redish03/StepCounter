@@ -1,4 +1,4 @@
-package com.example.stepcounter
+package com.teamwalk.stepcounter
 
 import android.Manifest
 import android.app.Notification
@@ -21,7 +21,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
-import com.example.stepcounter.repository.GroupRepository
+import com.teamwalk.stepcounter.repository.GroupRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

@@ -1,4 +1,4 @@
-package com.example.stepcounter
+package com.teamwalk.stepcounter
 
 import android.content.Intent
 import android.os.Bundle

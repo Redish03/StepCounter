@@ -1,4 +1,4 @@
-package com.example.stepcounter
+package com.teamwalk.stepcounter
 
 import android.os.Bundle
 import android.util.Log
@@ -8,8 +8,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.stepcounter.databinding.ActivityGroupBinding
-import com.example.stepcounter.repository.GroupRepository
+import com.teamwalk.stepcounter.databinding.ActivityGroupBinding
+import com.teamwalk.stepcounter.repository.GroupRepository
 
 class GroupActivity : AppCompatActivity() {
     private lateinit var binding: ActivityGroupBinding

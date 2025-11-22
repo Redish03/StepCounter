@@ -1,11 +1,10 @@
-package com.example.stepcounter
+package com.teamwalk.stepcounter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
-import androidx.constraintlayout.widget.Group
 import androidx.recyclerview.widget.RecyclerView
-import com.example.stepcounter.repository.GroupRepository
+import com.teamwalk.stepcounter.repository.GroupRepository
 
 class RankingAdapter: RecyclerView.Adapter<RankingAdapter.RankingViewHolder>() {
     private var members = listOf<GroupRepository.UserStepInfo>()

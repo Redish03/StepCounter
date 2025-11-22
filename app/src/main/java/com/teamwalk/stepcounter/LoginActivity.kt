@@ -1,4 +1,4 @@
-package com.example.stepcounter
+package com.teamwalk.stepcounter
 
 import android.Manifest
 import android.content.Intent
@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
@@ -22,7 +21,7 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.lifecycleScope
-import com.example.stepcounter.databinding.ActivityLoginBinding
+import com.teamwalk.stepcounter.databinding.ActivityLoginBinding
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
