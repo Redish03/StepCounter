@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -20,6 +21,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.stepcounter.databinding.ActivityMainBinding
+import com.example.stepcounter.repository.GroupRepository
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -49,6 +52,9 @@ class MainActivity : AppCompatActivity() {
             moveToGroupActivity()
         }
         binding.tvPrivacyPolicy.setOnClickListener { showPrivacyPolicyDialog() }
+        binding.btnDeleteAccount.setOnClickListener {
+            deleteAccount()
+        }
 
         checkBatteryOptimizations()
         startStepCounterService()
@@ -132,6 +138,55 @@ class MainActivity : AppCompatActivity() {
                 .setNegativeButton("취소", null)
                 .show()
         }
+    }
+
+    private fun deleteAccount() {
+        AlertDialog.Builder(this)
+            .setTitle("회원 탈퇴")
+            .setMessage("정말로 탈퇴하시겠습니까? 모든 기록이 삭제됩니다.")
+            .setPositiveButton("탈퇴") { _, _ ->
+                GroupRepository.deleteAccount { result ->
+                    handleDeleteResult(result) // 결과를 처리하는 함수로 넘김 (깔끔!)
+                }
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+    private fun handleDeleteResult(result: GroupRepository.DeleteResult) {
+        when (result) {
+            is GroupRepository.DeleteResult.Success -> {
+                Toast.makeText(this, "성공적으로 탈퇴되었습니다.", Toast.LENGTH_SHORT).show()
+                moveToLoginScreen()
+            }
+
+            is GroupRepository.DeleteResult.RequiresRecentLogin -> {
+                showReLoginDialog() // 재로그인 유도 팝업
+            }
+
+            is GroupRepository.DeleteResult.Failure -> {
+                Toast.makeText(this, "오류 발생: ${result.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun showReLoginDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("재로그인 필요")
+            .setMessage("보안을 위해 최근에 로그인한 사용자만 탈퇴할 수 있습니다.\n\n로그아웃 후 다시 로그인하시겠습니까?")
+            .setPositiveButton("확인") { _, _ ->
+                FirebaseAuth.getInstance().signOut()
+                moveToLoginScreen()
+            }
+            .setNegativeButton("취소", null)
+            .show()
+    }
+
+    private fun moveToLoginScreen() {
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 
     private fun moveToGroupActivity() {

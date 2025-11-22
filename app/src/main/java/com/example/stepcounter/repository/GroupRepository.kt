@@ -2,17 +2,24 @@ package com.example.stepcounter.repository
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.firestore.FirebaseFirestore
 
 object GroupRepository {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
+    sealed interface DeleteResult {
+        object Success: DeleteResult
+        object RequiresRecentLogin: DeleteResult
+        data class Failure(val message: String): DeleteResult
+    }
+
     data class UserStepInfo(
         val uid: String = "",
         val name: String = "",
         val steps: Int = 0,
-        val groupId: String? = null
+        val groupId: String? = null,
     )
 
     fun updateMySteps(steps: Int) {
@@ -104,7 +111,7 @@ object GroupRepository {
             .addOnFailureListener { onFailure("검색 실패: ${it.message}") }
     }
 
-    fun leaveGroup(groupId: String, onSuccess: () -> Unit){
+    fun leaveGroup(groupId: String, onSuccess: () -> Unit) {
         val uid = auth.currentUser?.uid ?: return
 
         val groupRef = db.collection("groups").document(groupId)
@@ -114,7 +121,7 @@ object GroupRepository {
             val members = snapshot.toObject(GroupInfo::class.java)?.members ?: emptyList()
             val newMembers = members.filter { it != uid }
 
-            if(newMembers.isEmpty()) {
+            if (newMembers.isEmpty()) {
                 transaction.delete(groupRef)
             } else {
                 transaction.update(groupRef, "members", newMembers)
@@ -124,21 +131,53 @@ object GroupRepository {
         }.addOnSuccessListener { onSuccess() }
     }
 
+    fun deleteAccount(onResult: (DeleteResult) -> Unit) {
+        val user = auth.currentUser
+        if (user == null) {
+            onResult(DeleteResult.Failure("로그인 정보가 없습니다."))
+            return
+        }
+
+        val uid = user.uid
+
+        // 1. Firestore 데이터 삭제 시도
+        db.collection("users").document(uid).delete()
+            .addOnSuccessListener {
+                // 2. Firebase Auth 계정 삭제 시도
+                user.delete()
+                    .addOnSuccessListener {
+                        // 성공
+                        onResult(DeleteResult.Success)
+                    }
+                    .addOnFailureListener { e ->
+                        // 실패 원인 분석 및 분류
+                        if (e is FirebaseAuthRecentLoginRequiredException) {
+                            onResult(DeleteResult.RequiresRecentLogin) // 재인증 필요
+                        } else {
+                            onResult(DeleteResult.Failure(e.message ?: "계정 삭제 실패"))
+                        }
+                    }
+            }
+            .addOnFailureListener { e ->
+                onResult(DeleteResult.Failure(e.message ?: "데이터 삭제 실패"))
+            }
+    }
+
     fun listenMyGroup(
         onGroupFound: (GroupInfo, List<UserStepInfo>) -> Unit,
-        onNoGroup: () -> Unit
+        onNoGroup: () -> Unit,
     ) {
         val uid = auth.currentUser?.uid ?: return
 
         db.collection("users").document(uid).addSnapshotListener { snapshot, _ ->
             val groupId = snapshot?.getString("groupId")
 
-            if(groupId == null) {
+            if (groupId == null) {
                 onNoGroup()
             } else {
                 db.collection("groups").document(groupId).addSnapshotListener { groupSnap, _ ->
                     val groupInfo = groupSnap?.toObject(GroupInfo::class.java)
-                    if(groupInfo != null) {
+                    if (groupInfo != null) {
                         fetchMembersInfo(groupInfo.members) { members ->
                             val sortedMembers = members.sortedByDescending { it.steps }
                             onGroupFound(groupInfo, sortedMembers)
