@@ -23,7 +23,6 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.example.stepcounter.repository.GroupRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class StepCounterService : LifecycleService(), SensorEventListener {
@@ -35,6 +34,8 @@ class StepCounterService : LifecycleService(), SensorEventListener {
 
     private var currentSteps = 0
     private var lastSavedSteps = 0
+    private var lastUploadedSteps = 0
+    private var lastUploadTime = 0L // 마지막 업로드 시간
 
     override fun onCreate() {
         super.onCreate()
@@ -96,8 +97,6 @@ class StepCounterService : LifecycleService(), SensorEventListener {
     private fun launchUpdateLoop() {
         lifecycleScope.launch(Dispatchers.Default) {
             while (true) {
-                delay(2000)
-
                 val lastDate = walkPrefs.getString(StepCounterUtil.KEY_LAST_UPDATE, "") ?: ""
                 val todayDate = StepCounterUtil.getTodayDate()
 
@@ -110,15 +109,20 @@ class StepCounterService : LifecycleService(), SensorEventListener {
                 if (currentSteps != lastSavedSteps) {
                     Log.d("StepCounterService", "변경 감지: $lastSavedSteps -> $currentSteps")
                     saveStepsToPrefs(currentSteps)
-
-                    GroupRepository.updateMySteps(currentSteps)
-
                     launch(Dispatchers.Main) {
                         sendStepUpdateBroadcast(currentSteps)
                     }
 
                     updateNotification(currentSteps)
                     lastSavedSteps = currentSteps
+
+                    if(shouldUpdateToServer(currentSteps)) {
+                        Log.d("StepCounterService", "서버에 업로드 실행")
+                        GroupRepository.updateMySteps(currentSteps)
+
+                        lastUploadedSteps = currentSteps
+                        lastUploadTime = System.currentTimeMillis()
+                    }
                 }
             }
         }
@@ -203,6 +207,19 @@ class StepCounterService : LifecycleService(), SensorEventListener {
         } else {
             true
         }
+    }
+
+    private fun shouldUpdateToServer(current: Int): Boolean {
+        val stepDiff = current - lastUploadedSteps
+        val timeDiff = System.currentTimeMillis() - lastUploadTime
+
+        // 조건 1: 마지막 업로드보다 50보 차이날 때
+        if (stepDiff >= 50) return true
+
+        // 조건 2: 마지막 업로드보다 5분(300,000ms) 이상 지났는데, 걸음 수 변화가 조금이라도 있을 때
+        if (timeDiff >= 5 * 60 * 1000 && stepDiff > 0) return true
+
+        return false
     }
 
     private fun updateNotification(steps: Int) {
