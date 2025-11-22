@@ -48,10 +48,17 @@ class MainActivity : AppCompatActivity() {
         binding.myTeamButton.setOnClickListener {
             moveToGroupActivity()
         }
+        binding.tvPrivacyPolicy.setOnClickListener { showPrivacyPolicyDialog() }
 
         checkBatteryOptimizations()
         startStepCounterService()
         setupStepUpdateReceiver()
+    }
+
+    private fun showPrivacyPolicyDialog() {
+        val privacyUrl = "https://wonderful-report-e58.notion.site/Team-Walk-2b35b07568ed80d08e5dc341be69b019?source=copy_link"
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(privacyUrl))
+        startActivity(intent)
     }
 
     override fun onResume() {
