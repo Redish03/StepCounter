@@ -11,9 +11,9 @@ object GroupRepository {
     private val auth = FirebaseAuth.getInstance()
 
     sealed interface DeleteResult {
-        object Success: DeleteResult
-        object RequiresRecentLogin: DeleteResult
-        data class Failure(val message: String): DeleteResult
+        object Success : DeleteResult
+        object RequiresRecentLogin : DeleteResult
+        data class Failure(val message: String) : DeleteResult
     }
 
     @Keep
@@ -48,6 +48,7 @@ object GroupRepository {
 
     fun createGroup(groupName: String, onSuccess: (String) -> Unit, onFailure: (String) -> Unit) {
         val uid = auth.currentUser?.uid ?: return
+        val myName = auth.currentUser?.displayName ?: "익명"
 
         // 중복되지 않는 코드를 먼저 찾습니다.
         findUniqueCode { uniqueCode ->
@@ -70,7 +71,12 @@ object GroupRepository {
 
                 // 2. 내 정보에 groupId 설정
                 val userRef = db.collection("users").document(uid)
-                val userData = mapOf("groupId" to groupId)
+                val userData = mapOf(
+                    "uid" to uid,
+                    "name" to myName,
+                    "steps" to 0,
+                    "groupId" to groupId
+                )
 
                 // SetOptions.merge()를 사용하면 문서가 없을 땐 새로 만들고, 있을 땐 해당 필드만 덮어씁니다.
                 transaction.set(userRef, userData, com.google.firebase.firestore.SetOptions.merge())
