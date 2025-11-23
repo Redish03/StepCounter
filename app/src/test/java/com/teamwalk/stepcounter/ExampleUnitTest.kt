@@ -1,4 +1,4 @@
-package com.example.stepcounter
+package com.teamwalk.stepcounter
 
 import org.junit.Test
 
