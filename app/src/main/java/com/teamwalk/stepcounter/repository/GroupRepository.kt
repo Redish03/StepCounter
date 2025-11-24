@@ -147,27 +147,52 @@ object GroupRepository {
         }
 
         val uid = user.uid
+        val userDocRef = db.collection("users").document(uid)
 
-        // 1. Firestore 데이터 삭제 시도
-        db.collection("users").document(uid).delete()
-            .addOnSuccessListener {
-                // 2. Firebase Auth 계정 삭제 시도
-                user.delete()
-                    .addOnSuccessListener {
-                        // 성공
-                        onResult(DeleteResult.Success)
-                    }
-                    .addOnFailureListener { e ->
-                        // 실패 원인 분석 및 분류
-                        if (e is FirebaseAuthRecentLoginRequiredException) {
-                            onResult(DeleteResult.RequiresRecentLogin) // 재인증 필요
-                        } else {
-                            onResult(DeleteResult.Failure(e.message ?: "계정 삭제 실패"))
+        // 1. 먼저 사용자 정보를 읽어와서 그룹 가입 여부 확인
+        userDocRef.get()
+            .addOnSuccessListener { snapshot ->
+                val groupId = snapshot.getString("groupId")
+
+                // 그룹 탈퇴 처리를 위한 트랜잭션 (또는 작업) 준비
+                val leaveGroupTask = if (groupId != null) {
+                    // 그룹이 있으면 멤버 목록에서 제거
+                    val groupRef = db.collection("groups").document(groupId)
+                    db.runTransaction { transaction ->
+                        val groupSnapshot = transaction.get(groupRef)
+                        if (groupSnapshot.exists()) {
+                            val members = groupSnapshot.toObject(GroupInfo::class.java)?.members ?: emptyList()
+                            val newMembers = members.filter { it != uid }
+
+                            if (newMembers.isEmpty()) {
+                                transaction.delete(groupRef) // 멤버가 0명이면 그룹 삭제
+                            } else {
+                                transaction.update(groupRef, "members", newMembers)
+                            }
                         }
                     }
+                } else {
+                    // 그룹이 없으면 바로 성공 처리되는 가짜 태스크 반환
+                    com.google.android.gms.tasks.Tasks.forResult(null)
+                }
+
+                // 2. 그룹 탈퇴 작업 완료 후 -> 데이터 삭제 -> 계정 삭제 진행
+                leaveGroupTask.continueWithTask {
+                    userDocRef.delete() // Firestore 유저 데이터 삭제
+                }.continueWithTask {
+                    user.delete() // Firebase Auth 계정 삭제
+                }.addOnSuccessListener {
+                    onResult(DeleteResult.Success)
+                }.addOnFailureListener { e ->
+                    if (e is FirebaseAuthRecentLoginRequiredException) {
+                        onResult(DeleteResult.RequiresRecentLogin)
+                    } else {
+                        onResult(DeleteResult.Failure(e.message ?: "탈퇴 처리 중 오류 발생"))
+                    }
+                }
             }
             .addOnFailureListener { e ->
-                onResult(DeleteResult.Failure(e.message ?: "데이터 삭제 실패"))
+                onResult(DeleteResult.Failure("사용자 정보 확인 실패: ${e.message}"))
             }
     }
 
@@ -223,7 +248,6 @@ object GroupRepository {
                     // 1. 아무도 안 씀 -> 이 코드 사용!
                     onFound(code)
                 } else {
-                    // 2. 누가 쓰고 있음 -> 다시 뽑아! (재귀 호출)
                     Log.d("GroupRepository", "코드 충돌 발생($code). 번호 다시 생성 중...")
                     findUniqueCode(onFound)
                 }
