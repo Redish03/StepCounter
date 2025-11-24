@@ -59,3 +59,4 @@ Name: Redish03
 Email: mithmake@gmail.com
 
 Role: 1인 개발 (기획, 디자인, 개발, 배포)
+[Team-Walk Notion 기록](https://wonderful-report-e58.notion.site/Team-Walk-2b35b07568ed80918ec8c30576ab08ef?source=copy_link)
