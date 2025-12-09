@@ -7,7 +7,7 @@ import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.auth.FirebaseAuth
 
-class SplashActivity: AppCompatActivity() {
+class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
@@ -19,15 +19,19 @@ class SplashActivity: AppCompatActivity() {
 
     private fun checkLoginStatus() {
         val currentUser = FirebaseAuth.getInstance().currentUser
-        if(currentUser != null) {
-            moveToMain()
+        if (currentUser != null) {
+            moveToMainScreen()
         } else {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
+            moveToLoginScreen()
         }
     }
 
-    private fun moveToMain() {
+    private fun moveToLoginScreen() {
+        startActivity(Intent(this, LoginActivity::class.java))
+        finish()
+    }
+
+    private fun moveToMainScreen() {
         startActivity(Intent(this, MainActivity::class.java))
         finish()
     }
