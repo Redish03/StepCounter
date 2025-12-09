@@ -48,23 +48,10 @@ class MainActivity : AppCompatActivity() {
         stepCounterPrefs =
             getSharedPreferences(StepCounterUtil.PREFERENCE_FILE_NAME, Context.MODE_PRIVATE)
 
-        binding.myTeamButton.setOnClickListener {
-            moveToGroupActivity()
-        }
-        binding.tvPrivacyPolicy.setOnClickListener { showPrivacyPolicyDialog() }
-        binding.btnDeleteAccount.setOnClickListener {
-            deleteAccount()
-        }
-
+        setClickListeners()
         checkBatteryOptimizations()
         startStepCounterService()
         setupStepUpdateReceiver()
-    }
-
-    private fun showPrivacyPolicyDialog() {
-        val privacyUrl = "https://wonderful-report-e58.notion.site/Team-Walk-2b35b07568ed80d08e5dc341be69b019?source=copy_link"
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(privacyUrl))
-        startActivity(intent)
     }
 
     override fun onResume() {
@@ -83,6 +70,23 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         unregisterReceiver(stepUpdateReceiver)
+    }
+
+    private fun setClickListeners() {
+        binding.myTeamButton.setOnClickListener {
+            moveToGroupActivity()
+        }
+        binding.tvPrivacyPolicy.setOnClickListener { showPrivacyPolicyDialog() }
+        binding.btnDeleteAccount.setOnClickListener {
+            deleteAccount()
+        }
+    }
+
+    private fun showPrivacyPolicyDialog() {
+        val privacyUrl =
+            "https://wonderful-report-e58.notion.site/Team-Walk-2b35b07568ed80d08e5dc341be69b019?source=copy_link"
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(privacyUrl))
+        startActivity(intent)
     }
 
     private fun setupStepUpdateReceiver() {
