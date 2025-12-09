@@ -42,8 +42,7 @@ class LoginActivity : AppCompatActivity() {
                     true
                 }
 
-            if (activityGranted && notificationGranted) {
-            } else {
+            if(!activityGranted || !notificationGranted) {
                 showPermissionGuidanceDialog()
             }
         }
