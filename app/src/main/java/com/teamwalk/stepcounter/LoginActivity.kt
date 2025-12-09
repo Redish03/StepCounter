@@ -71,13 +71,13 @@ class LoginActivity : AppCompatActivity() {
         val permissionsToRequest = mutableListOf<String>()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
-            checkPermissionDenied(Manifest.permission.ACTIVITY_RECOGNITION)
+            PermissionChecker().isPermissionDenied(this, Manifest.permission.ACTIVITY_RECOGNITION)
         ) {
             permissionsToRequest.add(Manifest.permission.ACTIVITY_RECOGNITION)
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            checkPermissionDenied(Manifest.permission.ACTIVITY_RECOGNITION)
+            PermissionChecker().isPermissionDenied(this, Manifest.permission.POST_NOTIFICATIONS)
         ) {
             permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -86,11 +86,6 @@ class LoginActivity : AppCompatActivity() {
             permissionsLauncher.launch(permissionsToRequest.toTypedArray())
         }
     }
-
-    private fun checkPermissionDenied(permission: String) = ContextCompat.checkSelfPermission(
-        this,
-        permission
-    ) == PackageManager.PERMISSION_DENIED
 
     private fun signInWithGoogle() {
         val credentialManager = CredentialManager.create(this)

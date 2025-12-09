@@ -101,7 +101,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun startStepCounterService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-            && checkPermissionDenied(Manifest.permission.ACTIVITY_RECOGNITION)
+            && PermissionChecker().isPermissionDenied(
+                context = this,
+                Manifest.permission.ACTIVITY_RECOGNITION
+            )
         ) {
             Log.e("MainActivity", "권한 없음, 서비스 시작 차단")
             return
@@ -109,11 +112,6 @@ class MainActivity : AppCompatActivity() {
 
         StepCounterService.startService(this)
     }
-
-    private fun checkPermissionDenied(permission: String) = ContextCompat.checkSelfPermission(
-        this,
-        permission
-    ) == PackageManager.PERMISSION_DENIED
 
     private fun loadStepsFromPrefs() {
         val currentSteps = stepCounterPrefs.getInt(StepCounterUtil.KEY_CURRENT_STEPS, 0)
