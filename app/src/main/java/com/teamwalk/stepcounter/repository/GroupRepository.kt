@@ -52,7 +52,6 @@ object GroupRepository {
 
         // 중복되지 않는 코드를 먼저 찾습니다.
         findUniqueCode { uniqueCode ->
-
             // 유니크한 코드를 찾았으니 이제 방을 만듭니다.
             val newGroupRef = db.collection("groups").document()
             val groupId = newGroupRef.id

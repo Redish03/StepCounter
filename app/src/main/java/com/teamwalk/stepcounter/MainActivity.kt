@@ -117,7 +117,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun loadStepsFromPrefs() {
         val currentSteps = stepCounterPrefs.getInt(StepCounterUtil.KEY_CURRENT_STEPS, 0)
-
         binding.stepCountView.text = currentSteps.toString()
     }
 
