@@ -103,7 +103,15 @@ class StepCounterService : LifecycleService(), SensorEventListener {
                 if (lastDate != todayDate) {
                     Log.d("StepCounterService", "자정이 지나 리셋 실행")
                     currentSteps = 0
-                    lastSavedSteps - 1 // 강제로 저장 로직이 돌게 하기 위해서 설정
+                    lastSavedSteps = 1
+
+                    saveStepsToPrefs(currentSteps)
+                    launch(Dispatchers.Main) {
+                        sendStepUpdateBroadcast(currentSteps)
+                    }
+                    updateNotification(currentSteps)
+                    lastSavedSteps = currentSteps
+                    GroupRepository.updateMySteps(currentSteps)
                 }
 
                 if (currentSteps != lastSavedSteps) {
